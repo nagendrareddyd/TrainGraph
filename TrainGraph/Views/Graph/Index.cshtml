@@ -1,0 +1,132 @@
+﻿@{
+    ViewBag.Title = "Route";
+}
+<div class="bs-example">
+    <div class="row" >
+        <div class="col-lg-12" id="UploadBlock">
+            <figure class="highlight">
+                <div class="form-group">
+                    <button type="button" class="btn btn-info" id="fileUpload">
+                        <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> StarUpload Graph Text</button>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="alert alert-danger" role="alert" id="message"></div>
+                    </div>
+                </div>
+            </figure>
+        </div>
+        <div class="col-lg-12 form-group" id="ResultBlock">
+
+            <figure class="highlight">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="alert alert-success" role="alert" id="RouteText"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="col-lg-12">
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" name="path" id="path" placeholder="A-B-C" style="text-transform:uppercase" />
+                                </div>
+                                <button type="button" id="distance" class="btn btn-default">Find Distance</button>
+                            
+
+                                <span class="label-default label" id="result"></span>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+
+                    
+                    
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="col-lg-6">
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" name="startNode" id="startNode" placeholder="START NODE" />
+                                    <input type="text" class="form-control" name="endNode" id="endNode" placeholder="END NODE" />
+                                    <input type="text" class="form-control" name="maxStops" id="maxStops" placeholder="STOPS" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="optionsRadios" id="ismaxStops" checked>
+                                    Max Stops
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="optionsRadios" id="stops">
+                                    Stops
+                                </label>
+                            </div>
+                            <button type="button" id="calculate" class="btn btn-default">Calculate</button>
+                        </div>
+                   
+                    <div class="col-lg-3">
+
+                        <span class="label-default label" id="stopsresult"></span>
+                    </div></div>
+                </div>
+            </figure>
+        </div>
+        <div class="row">
+            
+            
+            
+        </div>
+        <script type="text/javascript">
+            $(function () {
+                $("#ResultBlock").hide();
+                var graphData;
+                new AjaxUpload("fileUpload",{
+                    action: '@Url.Action("UploadFile")',
+                    onComplete: function (file, response) {
+                        response = response.split(">")[1];
+                        response = response.replace("</pre", "");
+                        var result = JSON.parse(response);
+                        graphData = result.Graph;
+                        console.log(result);
+                        if (graphData != undefined) {
+                            $("#RouteText").html(result.GraphInfo);
+                            $("#ResultBlock").show();
+                            $("#UploadBlock").hide();
+                        }
+                        else {
+                            $('#message').html(result);
+                        }
+                    }
+                });
+                $("#distance").on("click", function () {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("GetRouteDistance", "Graph")',
+
+                            data: { graph: graphData, routePath: $("#path").val() },
+                            dataType: "json",
+                            success: function (res) { $('#result').html(res); }
+                        });
+                });
+                $("#calculate").on("click", function () {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("GetRoutesWithStops", "Graph")',
+
+                            data: { graph: graphData, startNode: $("#startNode").val(), endNode: $("#endNode").val(), stops: $("#maxStops").val(), isMaxStops: $("#ismaxStops").is(':checked')},
+                            dataType: "json",
+                            success: function (res) { $('#stopsresult').html(res); }
+                        });
+                });
+            });
+        </script>
+    </div>
+</div>
